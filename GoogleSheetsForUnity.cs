@@ -15,19 +15,25 @@ public class GoogleSheetsForUnity : MonoBehaviour
 { 
     static string[] Scopes = { SheetsService.Scope.Spreadsheets };
     static string ApplicationName = "Google Sheets for Unity";
-    public String spreadsheetId = "";
+    public String spreadsheetId = "1YNeuMS9ERTmX9XBTKtZ_KExDyFcBGUqZWuIozr68oWw";
 
     private SheetsService service;
+    
     // Start is called before the first frame update
     void Start()
     {
         GoogleCredential credential;
-        using (var stream =
+        
+        /*using (var stream =
             new FileStream("Assets/credentials.json", FileMode.Open, FileAccess.Read))
         {
             credential = GoogleCredential.FromStream(stream)
                 .CreateScoped((Scopes));
-        }
+        }*/
+
+        var credentialsTextAsset = Resources.Load<TextAsset>("credentials");
+        credential = GoogleCredential.FromJson(credentialsTextAsset.text.ToString())
+            .CreateScoped((Scopes));
 
         // Create Google Sheets API service.
         service = new SheetsService(new BaseClientService.Initializer()
@@ -36,20 +42,21 @@ public class GoogleSheetsForUnity : MonoBehaviour
             ApplicationName = ApplicationName,
         });
        
-       AppendToSheet("Sheet1", "A:A", new List<object>(){"=row()", "16", "13", "19", "7"});
+       StartCoroutine(AppendToSheet("Sheet1", "A:F", new List<object>(){"=row()", "=row()*16", "=row()*13", "=row()*19", "=row()*7"}));
     }
 
-    public void AppendToSheet(string sheet, string range, List<object> values)
+    public IEnumerator AppendToSheet(string sheet, string range, List<object> values)
     {
-        string copositeRange = $"{sheet}!{range}";
+        string compositeRange = $"{sheet}!{range}";
         
         ValueRange valueRange = new ValueRange();
         valueRange.Values = new List<IList<object>> {values};
         
         SpreadsheetsResource.ValuesResource.AppendRequest request =
-            service.Spreadsheets.Values.Append(valueRange, spreadsheetId, range);
+            service.Spreadsheets.Values.Append(valueRange, spreadsheetId, compositeRange);
         request.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
         request.Execute();
         
+        yield return null;
     }
 }
