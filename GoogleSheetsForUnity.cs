@@ -10,12 +10,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 public class GoogleSheetsForUnity : MonoBehaviour
 { 
     static string[] Scopes = { SheetsService.Scope.Spreadsheets };
     static string ApplicationName = "Google Sheets for Unity";
-    public String spreadsheetId = "1YNeuMS9ERTmX9XBTKtZ_KExDyFcBGUqZWuIozr68oWw";
+    public String spreadsheetId = "";
 
     private SheetsService service;
     
@@ -41,22 +42,22 @@ public class GoogleSheetsForUnity : MonoBehaviour
             HttpClientInitializer = credential,
             ApplicationName = ApplicationName,
         });
-       
-       StartCoroutine(AppendToSheet("Sheet1", "A:F", new List<object>(){"=row()", "=row()*16", "=row()*13", "=row()*19", "=row()*7"}));
     }
 
-    public IEnumerator AppendToSheet(string sheet, string range, List<object> values)
+    public void AppendToSheet(string sheet, string range, List<object> values)
     {
-        string compositeRange = $"{sheet}!{range}";
         
-        ValueRange valueRange = new ValueRange();
-        valueRange.Values = new List<IList<object>> {values};
-        
-        SpreadsheetsResource.ValuesResource.AppendRequest request =
-            service.Spreadsheets.Values.Append(valueRange, spreadsheetId, compositeRange);
-        request.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-        request.Execute();
-        
-        yield return null;
+        Task.Factory.StartNew(() => 
+        {
+            string compositeRange = $"{sheet}!{range}";
+                    
+            ValueRange valueRange = new ValueRange();
+            valueRange.Values = new List<IList<object>> {values};
+            
+            SpreadsheetsResource.ValuesResource.AppendRequest request =
+                service.Spreadsheets.Values.Append(valueRange, spreadsheetId, compositeRange);
+            request.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            request.Execute();
+        });
     }
 }
