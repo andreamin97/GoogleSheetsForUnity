@@ -60,4 +60,14 @@ public class GoogleSheetsForUnity : MonoBehaviour
             request.Execute();
         });
     }
+
+ 	public IList<IList<object>> ReadData(string sheet, string range)
+    	{
+        string compositeRange = $"{sheet}!{range}";
+        
+        var request = service.Spreadsheets.Values.Get(spreadsheetId, compositeRange);
+        var response = request.Execute();
+        var values = response.Values;
+        return values;
+    	}
 }
